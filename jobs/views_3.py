@@ -1,3 +1,4 @@
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from jobs.models import Applicant
@@ -24,13 +25,13 @@ class Applicants(APIView):
         return Response(applicants)
 
     def post(self, request):
-        # TODO - write logic to take JSON input from `request.body`
-        # TODO - write ORM query to insert record in the database
+        data = json.loads(request.body)
+        Applicant.objects.create(**kwargs)
         resp = {"message": "success", "records": ""}
         return Response(resp)
 
     def delete(self, request):
-        # TODO - write logic to take json input from `request.body`
+        data = json.loads(request.body)
         # TODO - write ORM query to delete record from database.
         pass
 

@@ -1,6 +1,8 @@
+import json
 from jobs.models import JobTitle, Portal
-from jobs.serializers import JobTitleSerializer, PortalSerializer
+from jobs.serializers import JobTitleSerializer, PortalSerializer, JobDescriptionSerializer
 from django.http import JsonResponse, HttpResponse
+from rest_framework.parsers import JSONParser
 
 
 def jobtitle_list(request):
@@ -17,7 +19,32 @@ def jobtitle_list(request):
         return JsonResponse(job_titles.data, safe=False)
 
     elif request.method == "POST":
-        pass
+        parser = JSONParser()
+        data = parser.parse(request)
+
+        # SAVING JOB DESCRIPTION
+        # capture job description
+        jd_data = data.get("job_description")
+        jd_data_serializer = JobDescriptionSerializer(data=jd_data)
+
+        # how to save record after validation check has been performed?
+        jd_object = None
+        if jd_data_serializer.is_valid():
+            jd_object = jd_data_serializer.save()
+
+        # SAVING PORTAL
+        portal_data = data.get("portal")
+        portal_serializer = PortalSerializer(data=portal_data)
+        portal_obj = None
+        if portal_serializer.is_valid():
+            portal_obj = portal_serializer.save()
+
+        job_title_serializer = JobTitleSerializer(data=data)
+        if job_title_serializer.is_valid():
+            data["job_description"] = jd_object
+            data["portal"] = portal_obj
+            JobTitle.objects.create(**data)   # ORM query to create job title
+        return JsonResponse(job_title_serializer.data)
 
 
 # TODO portals list
